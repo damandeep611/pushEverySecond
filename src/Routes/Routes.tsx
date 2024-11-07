@@ -4,16 +4,17 @@ import Dashboard from "../pages/dashboard/Dashboard";
 
 import LandingPage from "../pages/Landing/LandingPage";
 import Analysis from "../pages/Analysis/Analysis";
+import Tracker from "../pages/Tracker/Tracker";
 
-
-export const router  = createBrowserRouter([
+export const router = createBrowserRouter([
   {
     path: "/",
-    element: <App/>,
+    element: <App />,
     children: [
-      {path: "/", element: <LandingPage/>},
-      {path: "/dashboard", element: <Dashboard/>},
-      {path: "/analysis", element: <Analysis/>}
-    ]
-  }
-])
+      { path: "/", element: <LandingPage /> },
+      { path: "/dashboard", element: <Dashboard /> },
+      { path: "/analysis", element: <Analysis /> },
+      { path: "/tracker", element: <Tracker /> },
+    ],
+  },
+]);

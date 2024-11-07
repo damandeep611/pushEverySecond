@@ -22,24 +22,34 @@ const SlideTabs = () => {
     opacity: 0,
   });
 
-  return(
-    <ul onMouseLeave={()=> {
-      setPosition((pv) => ({
-        ...pv,
-        opacity: 0,
-      }))
-    }} className="relative mx-auto flex w-fit rounded-full border-2 border-black bg-white p-1">
-
-      <motion.li className="absolute z-0 h-7 rounded-full bg-black md:h-12" animate={position}/>
-        {/* navgation liks  */}
-        <NavTab to="/" setPosition={setPosition}>Home</NavTab>
-        <NavTab setPosition={setPosition}>More</NavTab>
-        <NavTab setPosition={setPosition}>Features</NavTab>
-        <NavTab to="/dashboard" setPosition={setPosition}>Dashboard</NavTab>
-        <NavTab setPosition={setPosition}>Blog</NavTab>
-        
+  return (
+    <ul
+      onMouseLeave={() => {
+        setPosition((pv) => ({
+          ...pv,
+          opacity: 0,
+        }));
+      }}
+      className="relative mx-auto flex w-fit rounded-full border-2 border-black bg-white p-1"
+    >
+      <motion.li
+        className="absolute z-0 h-7 rounded-full bg-black md:h-12"
+        animate={position}
+      />
+      {/* navgation liks  */}
+      <NavTab to="/" setPosition={setPosition}>
+        Home
+      </NavTab>
+      <NavTab setPosition={setPosition}>More</NavTab>
+      <NavTab to="/tracker" setPosition={setPosition}>
+        Tracker
+      </NavTab>
+      <NavTab to="/dashboard" setPosition={setPosition}>
+        Dashboard
+      </NavTab>
+      <NavTab setPosition={setPosition}>Blog</NavTab>
     </ul>
-  )
+  );
 }
 
 interface NavTabProps {

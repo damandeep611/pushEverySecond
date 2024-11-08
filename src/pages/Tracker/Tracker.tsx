@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, formatDistanceToNow, parseISO } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import {
   Plus,
   MoreHorizontal,
@@ -19,6 +19,7 @@ interface Task {
   priority: "High" | "Medium" | "Low";
   category: string;
   createdAt: string;
+  startedAt: string;
   completedAt?: string;
   assignees: string[];
   comments: number;
@@ -49,9 +50,45 @@ const TaskCard = ({
   index: number;
   columnId: string;
 }) => {
-  const calculateTimeToComplete = (task: Task) => {
-    if (!task.completedAt) return null;
-    return formatDistanceToNow(parseISO(task.createdAt), { addSuffix: true });
+  const calculateTaskDuration = (task: Task) => {
+    if (!task.completedAt || !task.startedAt) return null;
+    try {
+      const startTime = new Date(task.startedAt);
+      const endTime = new Date(task.completedAt);
+      if (!isValid(startTime) || !isValid(endTime)) {
+        return null;
+      }
+      const durationInMinutes =
+        Math.floor(endTime.getTime() - startTime.getTime()) / (1000 * 60);
+
+      if (durationInMinutes < 60) {
+        return `Task completed in ${durationInMinutes} minutes`;
+      } else if (durationInMinutes < 1440) {
+        const hours = Math.floor(durationInMinutes / 60);
+        const minutes = durationInMinutes % 60;
+        return `Task completed in ${hours}h ${minutes}m`;
+      } else {
+        const days = Math.floor(durationInMinutes / 1440);
+        const hours = Math.floor((durationInMinutes % 1440) / 60);
+        return `Task completed in ${days}d ${hours}h`;
+      }
+    } catch (error) {
+      console.error("Error calculating duration:", error);
+      return null;
+    }
+  };
+  const formatStartTime = (startedAt: string | undefined) => {
+    if (!startedAt) return "Not started";
+    try {
+      const date = parseISO(startedAt);
+      if (!isValid(date)) {
+        return "Invalid date";
+      }
+      return format(date, "MMM d, YYY 'at' h:mm a");
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
 
   const [{ isDragging }, drag] = useDrag({
@@ -118,10 +155,24 @@ const TaskCard = ({
         </div>
         {task.completedAt && (
           <span className="text-xs text-gray-500">
-            Completed {calculateTimeToComplete(task)}
+            Completed{" "}
+            {calculateTaskDuration(task) &&
+              `Completed ${calculateTaskDuration(task)}`}
           </span>
         )}
       </div>
+
+      {columnId === "todo" && (
+        <div className="text-xs text-gray-500 mt-2">
+          Started: {formatStartTime(task.startedAt)}
+        </div>
+      )}
+
+      {columnId === "review" && task.completedAt && (
+        <div className="text-xs text-gray-500 mt-2">
+          {calculateTaskDuration(task)}
+        </div>
+      )}
     </motion.div>
   );
 };
@@ -250,6 +301,11 @@ export default function Tracker() {
         movedTask.completedAt = new Date().toISOString();
       }
 
+      // Remove completedAt if moved back from review
+      if (sourceColumnId === "review" && targetColumnId !== "review") {
+        delete movedTask.completedAt;
+      }
+
       targetColumn.tasks.splice(hoverIndex, 0, movedTask);
 
       return newColumns;
@@ -262,6 +318,7 @@ export default function Tracker() {
     const task: Task = {
       id: Date.now().toString(),
       ...newTask,
+      startedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       assignees: [],
       comments: 0,
